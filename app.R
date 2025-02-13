@@ -13,6 +13,8 @@ library(glue)
 
 source("R/get_chart_data.R")
 
+all_charts <- get_charts_list()
+
 # Define UI for application that draws a histogram
 ui <- fluidPage(
 
@@ -31,7 +33,10 @@ ui <- fluidPage(
                         ),
             selectInput("chart",
                         "..",
-                        choices = list())
+                        choices = list()),
+            selectizeInput("srch", choices = all_charts, multiple = TRUE, 
+                           label = "Search:", selected = NULL, 
+                           options = list(maxItems = 1, minItems = 1))
         ),
 
         # Show a plot of the generated distribution
@@ -40,9 +45,6 @@ ui <- fluidPage(
             h4(textOutput("chart_subtitle", )),
             robservableOutput("main_chart", width = 600),
             p(uiOutput("src")),
-            h3("dat"),
-            textOutput("test"),
-            tableOutput("tbl")
         )
     )
 )
