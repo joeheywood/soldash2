@@ -1,6 +1,8 @@
 library(RSQLite)
 library(glue)
 library(readr)
+library(gluedown)
+library(purrr)
 
 fl <- "data/sol_v4.db"
 
@@ -54,3 +56,26 @@ refresh_meta <- function() {
     dbDisconnect(cn)
     
 }
+
+
+refresh_analysis <- function() {
+    analysis <- read_csv("data/analysis.csv")
+    analysis$html <- map_chr(analysis$md, md_convert)
+    cn <- dbConnect(SQLite(), fl)
+    dbWriteTable(cn, "analysis", analysis, overwrite = TRUE)
+    
+    dbDisconnect(cn)
+    
+}
+
+get_html_for_chart <- function(dtst) {
+    cn <- dbConnect(SQLite(), fl)
+    dat <- dbGetQuery(cn, glue("SELECT html FROM analysis WHERE dataset = '{dtst}'"))
+    dbDisconnect(cn)
+    if(nrow(dat) == 1) {
+        return(dat$html)
+    } else {
+        return("")
+    }
+}
+

@@ -45,6 +45,7 @@ ui <- fluidPage(
             h4(textOutput("chart_subtitle", )),
             robservableOutput("main_chart", width = 600),
             p(uiOutput("src")),
+            div(uiOutput("analysis"))
         )
     )
 )
@@ -54,6 +55,21 @@ server <- function(input, output, session) {
     
     output$chart_title <- renderText({"..."})
     output$chart_subtitle <- renderText({"..."})
+    
+    # output$analysis <- renderText({
+    #     "
+    #     ## Markdown title
+    #     
+    #     some para text with **bold** and *italics*
+    #     
+    #     "
+    # })
+    
+    output$analysis <- renderUI({
+        html <- get_html_for_chart(input$chart)
+        tags$div(HTML(html))
+        
+    })
     
     output$main_chart <- renderRobservable({
         chrt <- input$chart
@@ -69,6 +85,7 @@ server <- function(input, output, session) {
         }
         
     })
+    
     
     observe({
         chpt <- input$chapt
