@@ -12,6 +12,7 @@ library(robservable)
 library(glue)
 
 source("R/get_chart_data.R")
+source("R/modules.R")
 
 all_charts <- get_charts_list()
 
@@ -36,7 +37,8 @@ ui <- fluidPage(
                         choices = list()),
             selectizeInput("srch", choices = all_charts, multiple = TRUE, 
                            label = "Search:", selected = NULL, 
-                           options = list(maxItems = 1, minItems = 1))
+                           options = list(maxItems = 1, minItems = 1)),
+            select_drop_ui("my_module_1")
         ),
 
         # Show a plot of the generated distribution
@@ -52,6 +54,8 @@ ui <- fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
+    
+    module_values_1 <- select_drop_server("my_module_1")
     
     output$chart_title <- renderText({"..."})
     output$chart_subtitle <- renderText({"..."})
