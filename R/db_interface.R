@@ -66,6 +66,7 @@ get_chapters <- function() {
 #' subsections <- get_subsections("Introduction")
 get_subsections <- function(chpt) {
     tryCatch({
+        print(chpt)
         cn <- dbConnect(SQLite(), fl)
         on.exit(dbDisconnect(cn))
         return(dbGetQuery(cn, glue("SELECT DISTINCT sol_subsection FROM mtd WHERE sol_chapter = '{chpt}'")))
@@ -183,17 +184,17 @@ get_html_for_chart <- function(dtst) {
 get_data_for_chart <- function(dtst, sqlite_dpth, chart = NULL) {
     conn <- dbConnect(SQLite(), sqlite_dpth)
     on.exit(dbDisconnect(conn)) # Ensure disconnection
-    
+
     m <- tbl(conn, "mtd") %>% filter(dataset == dtst) %>% collect()
     upd <- tbl(conn, "updates") %>% filter(dataset == dtst) %>% collect()
-    
+
     # Fetch data
     dat <- if (!is.null(chart) && !chart %in% "keep") {
         dbGetQuery(conn, glue("SELECT * FROM ind_dat WHERE dataset = '{dtst}' and chart = '{chart}'"))
     } else {
         dbGetQuery(conn, glue("SELECT * FROM ind_dat WHERE dataset = '{dtst}'"))
     }
-    
+
     # Update information processing
     if (nrow(upd) > 0) {
         upd$timestamp <- as.POSIXct(upd$timestamp, origin = "1970-1-1")
@@ -209,7 +210,7 @@ get_data_for_chart <- function(dtst, sqlite_dpth, chart = NULL) {
     } else {
         upds <- data.frame()
     }
-    
+
     # Set xd column and type
     if (dat$xwhich[1] == 1) {
         m$type <- "character"
@@ -218,18 +219,18 @@ get_data_for_chart <- function(dtst, sqlite_dpth, chart = NULL) {
         m$type <- "date"
         dat$xd <- dat$xvardt
     }
-    
+
     # Select output columns
     outdat <- if (!is.null(chart) && chart %in% "keep") {
         dat
     } else {
         dat |> select(dataset, xd, b = yvllb, y = yval, text)
     }
-    
+
     list(d = outdat, m = m, u = upds) |> convert_q_date()
 }
 
-#' Convert date if it's quarterly, rather than monthly. 
+#' Convert date if it's quarterly, rather than monthly.
 #' this changes the x axis
 #'
 #' @param obj List containing data, metadata, and update info.
@@ -238,15 +239,15 @@ get_data_for_chart <- function(dtst, sqlite_dpth, chart = NULL) {
 convert_q_date <- function(obj) {
     dat <- obj$d
     opts <- obj$m
-    
-    if("xd" %in% names(dat) == TRUE && 
+
+    if("xd" %in% names(dat) == TRUE &&
        all(str_detect(dat$xd, "^20\\d{2} ?(/|Q)[1-4]{1}$"))) {
         dat <- dat %>%
             mutate(xd = str_replace(xd, " ", "")) %>%
             separate(xd, c("yr", "q"), sep = "(Q|/)") %>%
             mutate(xd = as.Date(paste0(yr, "-",
                                        (as.numeric(q)*3),
-                                       "-01"))) 
+                                       "-01")))
         opts$type <- "quarter"
         opts$xtick <- "Quarter ending %b %Y"
         opts$frm <- min(dat$xd) - 20
