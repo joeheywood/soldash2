@@ -103,6 +103,28 @@ get_charts <- function(chpt, sub) {
     })
 }
 
+
+#' Get metadata for a given chart
+#'
+#' Retrieves a row from the `mtd` table for a given chart
+#'
+#' @param dtst The chapter name.
+#'
+#' @return A named character vector
+#'
+#' @examples
+#' charts <- get_charts("Introduction", "Overview")
+get_meta_for_chart <- function(dtst) {
+    tryCatch({
+        cn <- dbConnect(SQLite(), fl)
+        on.exit(dbDisconnect(cn))
+        return(dbGetQuery(cn, glue("SELECT sol_chapter, sol_subsection FROM mtd WHERE dataset = '{dtst}'")))
+    }, error = function(e) {
+        print(paste("Error getting meta for chart:", e$message))
+        character() # Return empty vector
+    })
+}
+
 #' Refresh the metadata table.
 #'
 #' Reads metadata from a CSV file (`data/meta.csv`) and writes it to the `mtd`

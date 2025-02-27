@@ -22,6 +22,7 @@ select_drop_ui <- function(id) {
         selectizeInput(ns("srch"),
                        choices = all_charts, multiple = TRUE,
                        label = "Search:", selected = NULL,
-                       options = list(maxItems = 1, minItems = 1))
+                       options = list(placeholder = "SEARCH",  maxItems = 1,
+                                      minItems = 1))
     )
 }
