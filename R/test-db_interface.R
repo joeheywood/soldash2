@@ -60,12 +60,12 @@ test_that("get_charts returns correct data", {
 #     # This test depends on your data setup.
 #     expect_silent(refresh_meta())  # Check if it runs without errors
 # })
-# 
+#
 # test_that("refresh_analysis updates the table", {
 #     # Similar to refresh_meta, this will depend on your data setup.
 #     expect_silent(refresh_analysis())
 # })
-# 
+#
 # test_that("get_html_for_chart returns correct data", {
 #     # Assuming you have data in your analysis table
 #     some_dataset <- get_charts_list()[1] # Get a dataset name

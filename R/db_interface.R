@@ -70,12 +70,37 @@ get_subsections <- function(chpt) {
         print(chpt)
         cn <- dbConnect(SQLite(), fl)
         on.exit(dbDisconnect(cn))
-        return(dbGetQuery(cn, glue("SELECT DISTINCT sol_subsection FROM mtd WHERE sol_chapter = '{chpt}'")))
+        return(dbGetQuery(cn, glue("SELECT DISTINCT sol_subsection FROM mtd WHERE sol_chapter = '{chpt}'")[[1]]))
     }, error = function(e) {
         print(paste("Error getting subsections:", e$message))
         data.frame(sol_subsection = character()) # Return empty data frame
     })
 }
+
+#' Get possible breakdowns for a given chart
+#'
+#' Retrieves a list of distinct `chart` values for a specific
+#' `dataset` from the `ind_dat` table.
+#'
+#' @param chart The chart name.
+#'
+#' @return A data frame containing distinct breakdown names in the `chart` column.
+#'   Returns an empty data frame if an error occurs.
+#'
+#' @examples
+#' brk <- get_breakdowns("sol2_cyp_happ")
+get_breakdowns <- function(chart) {
+    tryCatch({
+        cn <- dbConnect(SQLite(), fl)
+        on.exit(dbDisconnect(cn))
+        return(dbGetQuery(cn, glue("SELECT DISTINCT chart FROM ind_dat WHERE dataset = '{chart}'")[[1]]))
+    }, error = function(e) {
+        print(paste("Error getting breakdowns:", e$message))
+        data.frame(sol_subsection = character()) # Return empty data frame
+    })
+}
+
+
 
 #' Get charts for a given chapter and subsection.
 #'
@@ -161,7 +186,8 @@ append_ind_dat <- function(df) {
 #' refresh_meta()
 refresh_meta <- function() {
     tryCatch({
-        meta <- read_csv("data/meta.csv")
+        meta <- read_csv("data/meta.csv") %>%
+            filter(!is.na(dataset))
         cn <- dbConnect(SQLite(), fl)
         on.exit(dbDisconnect(cn))
         dbWriteTable(cn, "mtd", meta, overwrite = TRUE)
