@@ -3,6 +3,7 @@ library(glue)
 library(readr)
 library(gluedown)
 library(purrr)
+library(assertthat)
 
 fl <- "data/sol_v4.db"
 
@@ -122,6 +123,30 @@ get_meta_for_chart <- function(dtst) {
     }, error = function(e) {
         print(paste("Error getting meta for chart:", e$message))
         character() # Return empty vector
+    })
+}
+
+
+#' Append data to the ind_dat table
+#'
+#' @return Numeric value of number of rows added to the table
+#'
+append_ind_dat <- function(df) {
+    tryCatch({
+        dtst <- unique(df$dataset)
+        cn <- dbConnect(SQLite(), fl)
+        on.exit(dbDisconnect(cn))
+        if(!all(dbListFields(cn, "ind_dat)") %in% names(df))) {
+            stop("JH ERROR. You're missing columns")
+        }
+        df[, dbListFields(cn, "ind_dat")]
+        if(!length(dtst) %in% 1) {
+            stop("JH ERROR. Not a unique identifier")
+        }
+        dbSendQuery(cn, glue("DELETE FROM ind_dat WHERE dataset = '{dtst}'"))
+        dbAppendTable(cn, "ind_dat", df)
+    }, error = function(e) {
+        print(paste("Error refreshing metadata:", e$message))
     })
 }
 
