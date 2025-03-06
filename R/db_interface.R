@@ -67,7 +67,6 @@ get_chapters <- function() {
 #' subsections <- get_subsections("Introduction")
 get_subsections <- function(chpt) {
     tryCatch({
-        print(chpt)
         cn <- dbConnect(SQLite(), fl)
         on.exit(dbDisconnect(cn))
         return(dbGetQuery(cn, glue("SELECT DISTINCT sol_subsection FROM mtd WHERE sol_chapter = '{chpt}'")[[1]]))
@@ -255,6 +254,9 @@ get_html_for_chart <- function(dtst) {
 #'
 #' @return A list containing data, metadata, and update information.
 get_data_for_chart <- function(dtst, sqlite_dpth, chart = NULL) {
+    if(!is.null(chart) && chart == "") {
+        chart <- NULL
+    }
     conn <- dbConnect(SQLite(), sqlite_dpth)
     on.exit(dbDisconnect(conn)) # Ensure disconnection
 
@@ -267,6 +269,8 @@ get_data_for_chart <- function(dtst, sqlite_dpth, chart = NULL) {
     } else {
         dbGetQuery(conn, glue("SELECT * FROM ind_dat WHERE dataset = '{dtst}'"))
     }
+    ch <- ifelse(!is.null(chart), chart, "none")
+    save(dat, chart, file = glue("{dtst}_{ch}.RDA"))
 
     # Update information processing
     if (nrow(upd) > 0) {
